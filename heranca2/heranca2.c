@@ -16,6 +16,9 @@ int main() {
             else if(x > 1) {
                 printf("YES\n");
             }
+            else {
+                printf("NO\n");
+            }
         }
         else {
             printf("NO\n");
