@@ -1,5 +1,5 @@
 all :
-	g++ -o main stl1.cpp -g
+	g++ -o main stl1.cpp -g -std=c++11
 
 testing :
 	for number in `seq 1 2` ; do \
