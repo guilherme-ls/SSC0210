@@ -12,7 +12,7 @@ int main() {
 
     for(int i = 0; i < n_tests; i++) {
         int n_options;
-        map<string, int> entries;
+        map<const string, const int> entries;
         scanf("%d", &n_options);
 
         for(int j = 0; j < n_options; j++) {
