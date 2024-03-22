@@ -6,7 +6,6 @@ using namespace std;
 
 int main() {
     int bach, spin, count = 1;
-    vector<int> bach_left;
 
     while(1) {
         scanf("%d %d", &bach, &spin);
