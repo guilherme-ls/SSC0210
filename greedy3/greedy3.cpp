@@ -1,46 +1,37 @@
 #include<cstdio>
 #include<cstdlib>
+#include<vector>
 
 using namespace std;
 
 int main() {
-    int cases;
-    int n, m;
-    int max_line, min_column, max_column;
-    char tile;
+    int bach, spin, count = 1;
+    vector<int> bach_left;
 
-    scanf("%d", &cases);
-
-    for(int i = 0; i < cases; i++) {
-        int black = 0;
-        scanf("%d %d", &n, &m);
-        getchar();
-        max_line = max_column = 0;
-        min_column = m;
-
-        for(int j = 0; j < n; j++) {
-            for(int h = 0; h < m; h++) {
-                tile = getchar();
-                if(tile == 'B') {
-                    black++;
-                    if(n - j > max_line) {
-                        max_line = n - j;
-                    }
-                    if(h > max_column) {
-                        max_column = h;
-                    }
-                    if(h < min_column) {
-                        min_column = h;
-                    }
-                }
-            }
-            getchar();
+    while(1) {
+        scanf("%d %d", &bach, &spin);
+        int temp, young = 999999999;
+        for(int i = 0; i < bach; i++) {
+            scanf("%d", &temp);
+            if(temp < young)
+                young = temp;
         }
-        if(black > 0) {
-            printf("%d %d\n", max_line, max_column - min_column + 1);
+        for(int i = 0; i < spin; i++){
+            scanf("%d", &temp);
+        }
+
+        if(bach == 0 && spin == 0) {
+            break;
+        }
+
+        int diff = bach - spin;
+        printf("Case %d: ", count++);
+
+        if(diff <= 0) {
+            printf("0\n");
         }
         else {
-            printf("0 0\n");
+            printf("%d %d\n", diff, young);
         }
     }
 
