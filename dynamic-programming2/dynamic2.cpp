@@ -4,34 +4,45 @@
 
 using namespace std;
 
-int calculate(int n, int *gomos, int* memory);
+#define MAX 99999
+
+int calculate(int n, int *list, int* nstep);
 
 int main() {
     int n;
-    int *gomos;
+    int *list, *nstep;
 
     // reads inputs
     cin >> n;
-    gomos = (int*)malloc(n * sizeof(int));
+    list = (int*)malloc(n * sizeof(int));
     for(int i = 0; i < n; i++) {
-        cin >> gomos[i];
+        cin >> list[i];
     }
 
-    int *memory = gomos;
+    nstep = (int*)malloc(n * sizeof(int));
+    for(int i = 1; i < n; i++) {
+        nstep[i] = MAX;
+    }
+    nstep[0] = 0;
 
-    //int *memory = (int*)calloc(n + 1, sizeof(int));
-
-    int value = calculate(n, gomos, memory);
-    cout << value << endl;
+    int value = calculate(n, list, nstep);
+    if(value != MAX) {
+        cout << value << endl;
+    }
+    else {
+        cout << "Salto impossivel" << endl;
+    }
     return 0;
 }
 
-int calculate(int n, int *gomos, int *memory) {
-    for(int j = 1; j < n; j++) {
-        for(int i = 0; i < n - j; i++) {
-            memory[j + i] = max(memory[j - 1] + memory[i], memory[j + i]);
+int calculate(int n, int *list, int *nstep) {
+    for(int i= 0; i < n; i++) {
+        for(int j = 1; j < n - i && j <= list[i]; j++) {
+            if(nstep[i + j] > nstep[i] + 1) {
+                nstep[i + j] = nstep[i] + 1;
+            }
         }
     }
 
-    return memory[n-1];
+    return nstep[n-1];
 }
