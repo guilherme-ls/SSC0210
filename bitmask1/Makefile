@@ -1,5 +1,5 @@
 all :
-	g++ -o main bitmask1.cpp -g -O3
+	g++ -o main bitmask1.cpp -g -O3 -march=native
 
 testing :
 	for number in `seq 1 3` ; do \
