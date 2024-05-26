@@ -107,7 +107,6 @@ void dfs_t(int curr, vector<vector<int>>* adj, int* vis){
     vis[curr] = 2;*/
 }
 
-// Kosaraju
 bool calculate(vector<vector<int>> graph, vector<vector<int>> graph_t, int n) {
     int vis[n]; // 0 (branco) - Nao descoberto; 1 (cinza) - Descoberto; 2 (preto) - Finalizado
     stack<int> visit_stack;

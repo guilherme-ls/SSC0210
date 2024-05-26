@@ -48,6 +48,9 @@
         "streambuf": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp",
-        "bitset": "cpp"
+        "bitset": "cpp",
+        "queue": "cpp",
+        "hash_set": "cpp",
+        "set": "cpp"
     }
 }

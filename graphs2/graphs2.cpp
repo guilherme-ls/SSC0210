@@ -1,68 +1,111 @@
 #include<iostream>
 #include<cstdlib>
-#include<string>
+#include<vector>
+#include<algorithm>
+
+#define MAX 1000000007
 
 using namespace std;
 
-string calculate(string str1, string str2);
+void calculate(vector<vector<pair<int,long long>>> graph, int size, int posi, int posf);
+
+long long maximum = 0;
 
 int main() {
-    string str1, str2;
-    cin >> str1 >> str2;
+    int n, m;
+    cin >> n >> m;
+    
+    vector<vector<pair<int,long long>>> graph(n);
 
-    cout << calculate(str1, str2) << endl;
+    for(int i = 0; i < m; i++) {
+        int n1, n2;
+        long long dist;
+        cin >> n1 >> n2 >> dist;
+        graph[n1 - 1].emplace_back(make_pair(n2 - 1, dist));
+        maximum += dist;
+    }
+    ++maximum;
+
+    calculate(graph, n, 0, n-1);
 
     return 0;
 }
 
-string calculate(string str1, string str2) {
-    int length1 = str1.length();
-    int length2 = str2.length();
+struct myComp {
+    constexpr bool operator()(pair<int, long long*> const& a, pair<int, long long*> const& b) const noexcept {
+        return *(a.second) > *(b.second);
+    }
+};
 
-    if(length2 > length1) {
-        int templ = length2;
-        string temp = str2;
+// Dijkstra
+void calculate(vector<vector<pair<int,long long>>> graph, int size, int posi, int posf) {
+    long long dist[size];
+    vector<int> paths(size);
+    vector<long long> min(size);
+    vector<long long> max(size);
+    vector<pair<int,long long*>> heap;
+    vector<bool> selected(size);
 
-        str2 = str1;
-        length2 = length1;
-
-        length1 = templ;
-        str1 = temp;
+    // initial definition of both vectors
+    for(int i = 0; i < size; i++) {
+        dist[i] = maximum;
+        min[i] = maximum;
+        max[i] = 0;
+        selected[i] = false;
     }
 
-    string modulo;
-    string best_modulo = "";
-    for(int i = 1; i <= length2; i++) {
-        if((length2 % i != 0) || (length1 % i != 0))
-            continue;
+    // current pos
+    dist[posi] = 0;
+    min[0] = 0;
+    paths[posi] = 1;
+    --size;
+    int posc = posi;
 
-        modulo = str2.substr(0, i);
+    // Loop para encontrar menor caminho entre os vertices
+    while(1) {
+        // define lista de arestas a ser analisada
+        vector<pair<int,long long>> vertex = graph[posc];
+        for(int i = 0; i < vertex.size(); i++) {
+            pair<int,long long> posa = vertex[i];
+            if(dist[posc] + posa.second < dist[posa.first]) {
+                dist[posa.first] = dist[posc] + posa.second;
+                paths[posa.first] = paths[posc]  % MAX;
+                min[posa.first] = min[posc] + 1;
+                max[posa.first] = max[posc] + 1;
 
-        // checks if modulo applies to str2
-        bool valid = true;
-        for(int j = i; j <= length2 - i; j += i) {
-            if(modulo != str2.substr(j, i)) {
-                valid = false;
-                break;
+                if(!selected[posa.first]) {
+                    selected[posa.first] = true;
+                    heap.push_back(make_pair(posa.first, &(dist[posa.first])));
+                    push_heap(heap.begin(), heap.end(), myComp());
+                }
+                else {
+                    make_heap(heap.begin(), heap.end(), myComp());
+                }
+            }
+            else if(dist[posc] + posa.second == dist[posa.first]) {
+                paths[posa.first] = (paths[posa.first] + paths[posc]) % MAX;
+                if(min[posa.first] > min[posc] + 1)
+                    min[posa.first] = min[posc] + 1;
+                if(max[posa.first] < max[posc] + 1)
+                    max[posa.first] = max[posc] + 1;
             }
         }
-        if(!valid)
-            continue;
-
-        // checks if modulo applies to str1
-        valid = true;
-        for(int j = 0; j <= length1 - i; j += i) {
-            if(modulo != str1.substr(j, i)) {
-                valid = false;
-                break;
-            }
+        // no more vertices
+        if(size == 0) {
+            break;
         }
-        if(!valid)
-            continue;
 
-        // valid
-        best_modulo = modulo;
+        if(heap.size() == 0) {
+            cout << "Deu algum problema incrivel" << endl;
+            break;
+        }
+
+        // selects the heaps' top
+        pop_heap(heap.begin(), heap.end(), myComp());
+        posc = (*(heap.end() - 1)).first;
+        heap.pop_back();
+        --size;
     }
 
-    return best_modulo;
+    cout << dist[posf] << " " << paths[posf] % MAX << " " << min[posf] << " " << max[posf] << endl;
 }
