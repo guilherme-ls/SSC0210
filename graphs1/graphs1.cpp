@@ -67,16 +67,6 @@ void dfs(int curr, vector<vector<int>>* adj, int* vis, stack<int>* visit_stack) 
             (*visit_stack).push(current);
         }
     }
-
-    /*vis[curr] = 1;
-
-    for (auto x : (*adj)[curr]) {
-        if (vis[x] == 0)
-            dfs(x, adj, vis, visit_stack);
-    }
-
-    vis[curr] = 2;
-    (*visit_stack).push(curr);*/
 }
 
 void dfs_t(int curr, vector<vector<int>>* adj, int* vis){
@@ -86,25 +76,34 @@ void dfs_t(int curr, vector<vector<int>>* adj, int* vis){
     int current;
     while(lista.size() != 0) {
         current = lista.top();
-        lista.pop();
-
-        vis[current] = 1;
-
-        for(auto x : (*adj)[current]) {
-            if (vis[x] == 0)
-                lista.push(x);
+        if(vis[current] == 2) {
+            lista.pop();
+            continue;
         }
 
-        vis[current] = 2;
-    }
-    /*vis[curr] = 1;
+        stack<int> prelist;
+        bool added = false;
+        for(auto x : (*adj)[current]) {
+            if (vis[x] == 0) {
+                prelist.push(x);
+                added = true;
+            }
+        }
 
-    for (auto x : (*adj)[curr]) {
-        if(vis[x] == 0)
-            dfs_t(x, adj, vis);
-    }
+        if(vis[current] == 0) {
+            while(prelist.size() != 0) {
+                lista.push(prelist.top());
+                prelist.pop();
+            }
+        
+            vis[current] = 1;
+        }
 
-    vis[curr] = 2;*/
+        if(!added) {
+            lista.pop();
+            vis[current] = 2;
+        }
+    }
 }
 
 // Kosaraju

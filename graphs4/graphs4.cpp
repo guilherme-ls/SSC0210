@@ -2,148 +2,143 @@
 #include<cstdlib>
 #include<vector>
 #include<stack>
-#include<queue>
-#include<list>
+#include<string.h>
+
+#define MAX 1000000000000007
 
 using namespace std;
 
-bool calculate(vector<vector<int>> graph, vector<vector<int>> graph_t, int n);
+long long calculate(vector<vector<pair<int,long long>>> graph, int size, int posi, int posf);
 
 int main() {
     int n, m;
     cin >> n >> m;
     
-    vector<vector<int>> graph(n);
-    vector<vector<int>> graph_tr(n);
+    vector<vector<pair<int,long long>>> graph(n);
 
     for(int i = 0; i < m; i++) {
         int n1, n2;
-        cin >> n1 >> n2;
-        graph[n1 - 1].emplace_back(n2 - 1);
-        graph_tr[n2 - 1].emplace_back(n1 - 1);
+        int flow;
+        cin >> n1 >> n2 >> flow;
+
+        bool found = false;
+        for(int i = 0; i < graph[n1 - 1].size(); i++) {
+            if(graph[n1 - 1][i].first == n2 - 1) {
+                graph[n1 - 1][i].second += flow;
+                found = true;
+                break;
+            }
+        }
+        if(!found)
+            graph[n1 - 1].emplace_back(make_pair(n2 - 1, flow));
+
+        found = false;
+        for(auto x : graph[n2 - 1]) {
+            if(x.first == n1 - 1) {
+                found = true;
+                break;
+            }
+        }
+        if(!found)
+            graph[n2 - 1].emplace_back(make_pair(n1 - 1, 0));
     }
 
-    if(calculate(graph, graph_tr, n))
-        cout << "SIM" << endl;
-    else
-        cout << "NAO" << endl;
+    cout << calculate(graph, n, 0, n-1) << endl;
 
     return 0;
 }
 
-void dfs(int curr, vector<vector<int>>* adj, int* vis, stack<int>* visit_stack) {
+bool dfs(int curr, vector<vector<pair<int,long long>>> adj, vector<pair<int,int>>* parent) {
     stack<int> lista;
     lista.push(curr);
 
-    int current;
-    while(lista.size() != 0) {
-        current = lista.top();
-        if(vis[current] == 2) {
-            lista.pop();
-            continue;
-        }
-
-        stack<int> prelist;
-        bool added = false;
-        for(auto x : (*adj)[current]) {
-            if (vis[x] == 0) {
-                prelist.push(x);
-                added = true;
-            }
-        }
-
-        if(vis[current] == 0) {
-            while(prelist.size() != 0) {
-                lista.push(prelist.top());
-                prelist.pop();
-            }
-        
-            vis[current] = 1;
-        }
-
-        if(!added) {
-            lista.pop();
-            vis[current] = 2;
-            (*visit_stack).push(current);
-        }
-    }
-
-    /*vis[curr] = 1;
-
-    for (auto x : (*adj)[curr]) {
-        if (vis[x] == 0)
-            dfs(x, adj, vis, visit_stack);
-    }
-
-    vis[curr] = 2;
-    (*visit_stack).push(curr);*/
-}
-
-void dfs_t(int curr, vector<vector<int>>* adj, int* vis){
-    stack<int> lista;
-    lista.push(curr);
+    bool vis[adj.size()];
+    memset(vis, 0, sizeof(vis));
 
     int current;
     while(lista.size() != 0) {
         current = lista.top();
         lista.pop();
 
-        vis[current] = 1;
-
-        for(auto x : (*adj)[current]) {
-            if (vis[x] == 0)
-                lista.push(x);
+        stack<int> prelist;
+        bool added = false;
+        int count = 0;
+        for(auto x : adj[current]) {
+            if(vis[x.first] == false && x.second > 0) {
+                prelist.push(x.first);
+                added = true;
+                (*parent)[x.first].first = current;
+                (*parent)[x.first].second = count;
+                if(x.first == adj.size() - 1) {
+                    return true;
+                }
+            }
+            ++count;
         }
 
-        vis[current] = 2;
+        if(!vis[current]) {
+            while(prelist.size() != 0) {
+                lista.push(prelist.top());
+                prelist.pop();
+            }
+        
+            vis[current] = true;
+        }
     }
-    /*vis[curr] = 1;
 
-    for (auto x : (*adj)[curr]) {
-        if(vis[x] == 0)
-            dfs_t(x, adj, vis);
-    }
-
-    vis[curr] = 2;*/
+    return false;
 }
 
-bool calculate(vector<vector<int>> graph, vector<vector<int>> graph_t, int n) {
-    int vis[n]; // 0 (branco) - Nao descoberto; 1 (cinza) - Descoberto; 2 (preto) - Finalizado
-    stack<int> visit_stack;
+// Ford-Fulkerson
+long long calculate(vector<vector<pair<int,long long>>> graph, int size, int posi, int posf) {
+    // residual graph
+    vector<vector<pair<int,long long>>> rgraph(size);
 
-    // Inicializa cor branca (= 0) em todos
-    for(int i = 0; i < n; i++) {
-        vis[i] = 0;
-    }
-    
-    // Loop para busca em profundidadae no grafo normal
-    for(int i = 0; i < n; i++) {
-        // Caso ainda haja vertices nao descobertos
-        if(vis[i] == 0) {
-            dfs(i, &graph, vis, &visit_stack);
+    for (int i = 0; i < size; i++) {
+        for (int j = 0; j < graph[i].size(); j++) {
+            rgraph[i].emplace_back(graph[i][j]);
         }
     }
 
-    // Reinicializa cor branca (= 0) em todos
-    for(int i = 0; i < n; i++){
-        vis[i] = 0;
-    } 
-    
-    int cont = 0;
-    int idAtual;
-    // Loop para busca em profundidadae no grafo transposto
-    while(visit_stack.size() != 0) {
-        // Caso ainda haja vertices nao descobertos
-        idAtual = visit_stack.top();
-        visit_stack.pop();
+    // starts variables
+    vector<pair<int,int>> parent(size);
+    long long maximum_flow = 0;
+ 
+    // for each path augments flow
+    bool new_path = true;
+    int count = 0;
+    while(dfs(posi, rgraph, &parent)) {
+        //cout << count++ << endl;
 
-        if(vis[idAtual] == 0){
-            cont++;
-            dfs_t(idAtual, &graph_t, vis);
+        // Find minimum residual capacity of the edges along
+        // the path filled by BFS. Or we can say find the maximum flow through the path found.
+        long long path_flow = MAX;
+        for (int j = posf; j != posi; j = parent[j].first) {
+            int i = parent[j].first;
+            int x = parent[j].second;
+            
+            path_flow = min(path_flow, rgraph[i][x].second);
         }
+ 
+        // update residual capacities of the edges and reverse edges along the path
+        for (int j = posf; j != posi; j = parent[j].first) {
+            int i = parent[j].first;
+            int x = parent[j].second;
+
+            int y = 0;
+            for(y = 0; y < rgraph[j].size(); y++)
+                if(rgraph[j][y].first == i)
+                    break;
+
+            rgraph[i][x].second -= path_flow;
+            rgraph[j][y].second += path_flow;
+        }
+ 
+        // Add path flow to overall flow
+        maximum_flow += path_flow;
     }
-    
-    if(cont == 1)
-        return true;
-    return false;
+ 
+    // Return the overall flow
+    return maximum_flow;
+
 }

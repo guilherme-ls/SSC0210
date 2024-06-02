@@ -7,26 +7,41 @@
 
 using namespace std;
 
-bool calculate(vector<vector<int>> graph, vector<vector<int>> graph_t, int n);
+vector<int> calculate(vector<vector<int>> graph, vector<vector<int>> graph_t, int n);
 
 int main() {
-    int n, m;
-    cin >> n >> m;
-    
-    vector<vector<int>> graph(n);
-    vector<vector<int>> graph_tr(n);
+    int n, m, r;
 
-    for(int i = 0; i < m; i++) {
-        int n1, n2;
-        cin >> n1 >> n2;
-        graph[n1 - 1].emplace_back(n2 - 1);
-        graph_tr[n2 - 1].emplace_back(n1 - 1);
+    while(1) {
+        cin >> n >> m;
+
+        if(m == 0 && n == 0)
+            break;
+        
+        vector<vector<int>> graph(n);
+        vector<vector<int>> graph_tr(n);
+
+        for(int i = 0; i < m; i++) {
+            int n1, n2;
+            cin >> n1 >> n2 >> r;
+            graph[n1 - 1].emplace_back(n2 - 1);
+            graph_tr[n2 - 1].emplace_back(n1 - 1);
+            if(r == 2) {
+                graph[n2 - 1].emplace_back(n1 - 1);
+                graph_tr[n1 - 1].emplace_back(n2 - 1);
+            }
+        }
+
+        vector<int> groups = calculate(graph, graph_tr, n);
+
+        if(groups.size() == 1)
+            cout << "amor total" << endl;
+        else {
+            for(int i = 0; i < groups.size(); i++)
+                cout << "[" << i+1 << "," << groups[i] << "]";
+            cout << endl;
+        }
     }
-
-    if(calculate(graph, graph_tr, n))
-        cout << "SIM" << endl;
-    else
-        cout << "NAO" << endl;
 
     return 0;
 }
@@ -67,47 +82,50 @@ void dfs(int curr, vector<vector<int>>* adj, int* vis, stack<int>* visit_stack) 
             (*visit_stack).push(current);
         }
     }
-
-    /*vis[curr] = 1;
-
-    for (auto x : (*adj)[curr]) {
-        if (vis[x] == 0)
-            dfs(x, adj, vis, visit_stack);
-    }
-
-    vis[curr] = 2;
-    (*visit_stack).push(curr);*/
 }
 
-void dfs_t(int curr, vector<vector<int>>* adj, int* vis){
+int dfs_t(int curr, vector<vector<int>>* adj, int* vis){
     stack<int> lista;
     lista.push(curr);
+    int cont = 0;
 
     int current;
     while(lista.size() != 0) {
         current = lista.top();
-        lista.pop();
-
-        vis[current] = 1;
-
-        for(auto x : (*adj)[current]) {
-            if (vis[x] == 0)
-                lista.push(x);
+        if(vis[current] == 2) {
+            lista.pop();
+            continue;
         }
 
-        vis[current] = 2;
-    }
-    /*vis[curr] = 1;
+        stack<int> prelist;
+        bool added = false;
+        for(auto x : (*adj)[current]) {
+            if (vis[x] == 0) {
+                prelist.push(x);
+                added = true;
+            }
+        }
 
-    for (auto x : (*adj)[curr]) {
-        if(vis[x] == 0)
-            dfs_t(x, adj, vis);
+        if(vis[current] == 0) {
+            while(prelist.size() != 0) {
+                lista.push(prelist.top());
+                prelist.pop();
+            }
+        
+            vis[current] = 1;
+        }
+
+        if(!added) {
+            lista.pop();
+            vis[current] = 2;
+            cont++;
+        }
     }
 
-    vis[curr] = 2;*/
+    return cont;
 }
 
-bool calculate(vector<vector<int>> graph, vector<vector<int>> graph_t, int n) {
+vector<int> calculate(vector<vector<int>> graph, vector<vector<int>> graph_t, int n) {
     int vis[n]; // 0 (branco) - Nao descoberto; 1 (cinza) - Descoberto; 2 (preto) - Finalizado
     stack<int> visit_stack;
 
@@ -129,21 +147,22 @@ bool calculate(vector<vector<int>> graph, vector<vector<int>> graph_t, int n) {
         vis[i] = 0;
     } 
     
-    int cont = 0;
+    vector<int> groups;
+
+    int cont;
     int idAtual;
     // Loop para busca em profundidadae no grafo transposto
     while(visit_stack.size() != 0) {
         // Caso ainda haja vertices nao descobertos
         idAtual = visit_stack.top();
         visit_stack.pop();
+        cont++;
 
         if(vis[idAtual] == 0){
-            cont++;
-            dfs_t(idAtual, &graph_t, vis);
+            cont = dfs_t(idAtual, &graph_t, vis);
+            groups.emplace_back(cont);
         }
     }
     
-    if(cont == 1)
-        return true;
-    return false;
+    return groups;
 }
