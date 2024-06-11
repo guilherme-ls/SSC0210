@@ -2,7 +2,7 @@
 #include<cstdlib>
 #include<vector>
 #include<stack>
-#include<queue>
+#include<algorithm>
 #include<list>
 
 using namespace std;
@@ -84,45 +84,34 @@ void dfs(int curr, vector<vector<int>>* adj, int* vis, stack<int>* visit_stack) 
     }
 }
 
-int dfs_t(int curr, vector<vector<int>>* adj, int* vis){
+int dfs_t(int curr, vector<vector<int>>* adj, int* vis, int cor){
     stack<int> lista;
     lista.push(curr);
-    int cont = 0;
 
+    int count = 0;
     int current;
     while(lista.size() != 0) {
         current = lista.top();
-        if(vis[current] == 2) {
-            lista.pop();
-            continue;
-        }
-
-        stack<int> prelist;
-        bool added = false;
-        for(auto x : (*adj)[current]) {
-            if (vis[x] == 0) {
-                prelist.push(x);
-                added = true;
-            }
-        }
+        lista.pop();
 
         if(vis[current] == 0) {
+            stack<int> prelist;
+            for(auto x : (*adj)[current]) {
+                if(vis[x] == 0) {
+                    prelist.push(x);
+                }
+            }
+
             while(prelist.size() != 0) {
                 lista.push(prelist.top());
                 prelist.pop();
             }
-        
-            vis[current] = 1;
-        }
-
-        if(!added) {
-            lista.pop();
-            vis[current] = 2;
-            cont++;
+            
+            vis[current] = cor;
+            ++count;
         }
     }
-
-    return cont;
+    return count;
 }
 
 vector<int> calculate(vector<vector<int>> graph, vector<vector<int>> graph_t, int n) {
@@ -145,24 +134,35 @@ vector<int> calculate(vector<vector<int>> graph, vector<vector<int>> graph_t, in
     // Reinicializa cor branca (= 0) em todos
     for(int i = 0; i < n; i++){
         vis[i] = 0;
-    } 
-    
-    vector<int> groups;
+    }
+
+    int groups[n+1];
 
     int cont;
     int idAtual;
     // Loop para busca em profundidadae no grafo transposto
+    int cor = 1;
     while(visit_stack.size() != 0) {
         // Caso ainda haja vertices nao descobertos
         idAtual = visit_stack.top();
         visit_stack.pop();
-        cont++;
 
-        if(vis[idAtual] == 0){
-            cont = dfs_t(idAtual, &graph_t, vis);
-            groups.emplace_back(cont);
+        if(vis[idAtual] == 0) {
+            cont = dfs_t(idAtual, &graph_t, vis, cor++);
+            groups[cor - 1] = cont;
         }
     }
-    
-    return groups;
+
+    vector<int> group;
+    bool cores[cor];
+    for(int i = 0; i < cor; i++) cores[i] = false;
+
+    for(int i = 0; i < n; i++) {
+        if(!cores[vis[i]]) {
+            cores[vis[i]] = true;
+            group.emplace_back(groups[vis[i]]);
+        }
+    }
+
+    return group;
 }

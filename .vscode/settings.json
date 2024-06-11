@@ -51,6 +51,7 @@
         "bitset": "cpp",
         "queue": "cpp",
         "hash_set": "cpp",
-        "set": "cpp"
+        "set": "cpp",
+        "unordered_set": "cpp"
     }
 }

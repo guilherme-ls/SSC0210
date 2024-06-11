@@ -61,12 +61,10 @@ bool dfs(int curr, vector<vector<pair<int,long long>>> adj, vector<pair<int,int>
         lista.pop();
 
         stack<int> prelist;
-        bool added = false;
         int count = 0;
         for(auto x : adj[current]) {
             if(vis[x.first] == false && x.second > 0) {
                 prelist.push(x.first);
-                added = true;
                 (*parent)[x.first].first = current;
                 (*parent)[x.first].second = count;
                 if(x.first == adj.size() - 1) {
